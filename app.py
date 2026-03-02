@@ -22,13 +22,14 @@ if not st.session_state.setup_complete:
     st.title("🗞️ The Dorch's Daily")
     st.subheader("Your Sanctuary from the Noise")
     
-    with st.form("onboarding"):
+    # Everything inside this 'with' block waits until the 'Submit' button is clicked
+    with st.form("onboarding_form"):
         st.write("### 1. The Soul")
         paper_name = st.text_input("Name your Daily Edition:", "The Laine Ledger")
         
         st.write("### 2. The Pillars")
         topics = st.multiselect("Pick your anchor topics:", ["Oilers", "Blue Jays", "Iran War", "Alberta Politics", "AI & Tech"])
-        custom_niche = st.text_input("Add a specific niche (e.g. Vintage Watches):")
+        custom_niche = st.text_input("Add a specific niche (e.g. Ballet):", help="Type it here, but don't hit Enter! Just move to the next question.")
         
         st.write("### 3. The Tone Matrix")
         tone = st.selectbox("Pick your Voice:", ["Witty Friend", "Straight Shooter", "Deep Analyst"])
@@ -57,8 +58,7 @@ else:
     st.write(f"Generated for your coffee time | {datetime.date.today()}")
     st.divider()
 
-    # Combine pillars with custom niche if it exists
-    all_topics = st.session_state.topics
+    all_topics = st.session_state.topics.copy()
     if st.session_state.custom_niche:
         all_topics.append(st.session_state.custom_niche)
 
@@ -80,11 +80,6 @@ else:
             st.error(f"The 'Pipe' for {topic} is currently clogged.")
     
     st.divider()
-    st.write("### 🗣️ Sam's Feedback Loop")
-    feedback = st.text_area("What should we change? (Questions, Design, Tone?)")
-    if st.button("Send to Sam"):
-        st.toast("Feedback logged! I'm on it, Laine.")
-
     if st.button("Reset & Re-Tune"):
         st.session_state.setup_complete = False
         st.rerun()
