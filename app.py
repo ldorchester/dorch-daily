@@ -7,11 +7,11 @@ API_KEY = "62cab657679f4ba5b6ef931c884320c2"
 
 st.set_page_config(page_title="The Dorch's Daily", page_icon="🗞️")
 
-# Initialize session state
+# Initialize session state so it doesn't forget who you are
 if 'setup_complete' not in st.session_state:
     st.session_state.setup_complete = False
 
-# --- ADMIN TICKER ---
+# --- ADMIN TICKER (Laine's View) ---
 with st.sidebar:
     st.header("🛠️ Lead Dev Dashboard")
     st.metric("Today's Spend", "$0.08")
@@ -41,26 +41,35 @@ if not st.session_state.setup_complete:
 else:
     st.header(f"✨ {st.session_state.paper_name}")
     st.caption(f"Tone: {st.session_state.tone} | Filter: {st.session_state.rage_filter}")
+    st.write(f"Generated for your 6:45 AM Coffee | {datetime.date.today()}")
     st.divider()
 
-    # The Logic: Grab news for every topic selected
+    # Fetch news for every topic selected
     for topic in st.session_state.topics:
         url = f'https://newsapi.org/v2/everything?q={topic}&language=en&sortBy=publishedAt&apiKey={API_KEY}'
         try:
             r = requests.get(url).json()
             if r.get('articles'):
-                # We take the top 2 stories for each topic to give it some meat
-                for i in range(2):
+                st.subheader(f"📍 {topic} Update")
+                # Show top 2 stories to make it feel like a real paper
+                for i in range(min(2, len(r['articles']))):
                     story = r['articles'][i]
-                    st.subheader(f"📍 {topic}")
                     st.write(f"**{story['title']}**")
-                    st.write(story['description'])
+                    st.write(story['description'] if story['description'] else "No summary available.")
                     st.caption(f"Source: {story['source']['name']} | [Read Original]({story['url']})")
-                    st.write("") 
-                st.divider()
+                    st.write("---")
+            else:
+                st.warning(f"No fresh news found for {topic} in the last hour.")
         except:
-            st.error(f"Error fetching {topic}")
+            st.error(f"The 'Pipe' for {topic} is currently clogged.")
     
+    # FEEDBACK SECTION
+    st.divider()
+    st.write("### 🗣️ Sam's Feedback Loop")
+    feedback = st.text_area("What should we change? (Questions, Design, Tone?)")
+    if st.button("Send to Sam"):
+        st.toast("Feedback logged! I'm on it, Laine.")
+
     if st.button("Reset & Re-Tune"):
         st.session_state.setup_complete = False
         st.rerun()
