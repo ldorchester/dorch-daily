@@ -7,7 +7,7 @@ API_KEY = "62cab657679f4ba5b6ef931c884320c2"
 
 st.set_page_config(page_title="The Dorch's Daily", page_icon="🗞️")
 
-# Initialize session state keys to prevent the "AttributeError"
+# Initialize session state
 if 'setup_complete' not in st.session_state:
     st.session_state.setup_complete = False
 
@@ -43,20 +43,23 @@ else:
     st.caption(f"Tone: {st.session_state.tone} | Filter: {st.session_state.rage_filter}")
     st.divider()
 
-    if API_KEY != "62cab657679f4ba5b6ef931c884320c2":
-        for topic in st.session_state.topics:
-            url = f'https://newsapi.org/v2/everything?q={topic}&sortBy=publishedAt&apiKey={API_KEY}'
-            try:
-                r = requests.get(url).json()
-                if r.get('articles'):
-                    story = r['articles'][0]
+    # The Logic: Grab news for every topic selected
+    for topic in st.session_state.topics:
+        url = f'https://newsapi.org/v2/everything?q={topic}&language=en&sortBy=publishedAt&apiKey={API_KEY}'
+        try:
+            r = requests.get(url).json()
+            if r.get('articles'):
+                # We take the top 2 stories for each topic to give it some meat
+                for i in range(2):
+                    story = r['articles'][i]
                     st.subheader(f"📍 {topic}")
                     st.write(f"**{story['title']}**")
                     st.write(story['description'])
-                    st.caption(f"[Read Original]({story['url']})")
-                    st.divider()
-            except:
-                st.error(f"Error fetching {topic}")
+                    st.caption(f"Source: {story['source']['name']} | [Read Original]({story['url']})")
+                    st.write("") 
+                st.divider()
+        except:
+            st.error(f"Error fetching {topic}")
     
     if st.button("Reset & Re-Tune"):
         st.session_state.setup_complete = False
