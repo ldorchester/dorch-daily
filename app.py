@@ -21,14 +21,15 @@ if not st.session_state.setup_complete:
     st.title("🗞️ The Dorch's Daily")
     st.subheader("Your Sanctuary from the Noise")
     
-    # LOCKDOWN: clear_on_submit=False keeps the data safe if they hit enter
-    with st.form(key="onboarding_form_final", clear_on_submit=False):
+    with st.form(key="onboarding_v5"):
         st.write("### 1. The Soul")
         paper_name = st.text_input("Name your Daily Edition:", "The Laine Ledger")
         
         st.write("### 2. The Pillars")
         topics = st.multiselect("Pick your anchor topics:", ["Oilers", "Blue Jays", "F1", "Iran War", "Alberta Politics", "AI & Tech"])
-        custom_niche = st.text_input("Add a specific niche (e.g. Ballet):")
+        
+        # CHANGED: Using text_area so 'Enter' doesn't trigger the build!
+        custom_niche = st.text_area("Add a specific niche (e.g. World of Ballet):", help="Pressing Enter here just adds a new line. It won't submit the form.")
         
         st.write("### 3. The Tone Matrix")
         tone = st.selectbox("Pick your Voice:", ["Witty Friend", "Straight Shooter", "Deep Analyst"])
@@ -39,16 +40,15 @@ if not st.session_state.setup_complete:
         st.write("### 5. Coffee Time")
         coffee_time = st.time_input("When is your first sip of coffee?", value=datetime.time(6, 45))
         
-        # This is the ONLY button that will now submit the form
         submit = st.form_submit_button("Build My Edition")
         
         if submit:
-            if not topics and not custom_niche:
+            if not topics and not custom_niche.strip():
                 st.error("Wait! You didn't pick any topics.")
             else:
                 st.session_state.paper_name = paper_name
                 st.session_state.topics = topics
-                st.session_state.custom_niche = custom_niche
+                st.session_state.custom_niche = custom_niche.strip()
                 st.session_state.tone = tone
                 st.session_state.rage_filter = rage_filter
                 st.session_state.setup_complete = True
@@ -70,13 +70,15 @@ else:
             r = requests.get(url).json()
             if r.get('articles'):
                 st.subheader(f"📍 {topic} Update")
+                # Showing top 2 for variety
                 for i in range(min(2, len(r['articles']))):
                     story = r['articles'][i]
                     st.write(f"**{story['title']}**")
-                    # COMING NEXT: Gemini will replace this raw description with a 1,000-word story
-                    st.write(story['description'] if story['description'] else "Scanning for details...")
+                    st.write(story['description'] if story['description'] else "Gathering Intel...")
                     st.caption(f"Source: {story['source']['name']} | [Read Original]({story['url']})")
                     st.write("---")
+            else:
+                st.warning(f"No fresh news found for {topic} yet.")
         except:
             st.error(f"The 'Pipe' for {topic} is currently clogged.")
     
